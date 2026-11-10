@@ -221,10 +221,6 @@ pub fn interfaces() -> Vec<Interface> {
             interfaces.push(interface);
             cur = unsafe { (*cur).Next };
         }
-    } else {
-        unsafe {
-            deallocate(mem as *mut u8, dwsize as usize);
-        }
     }
     unsafe {
         deallocate(mem as *mut u8, dwsize as usize);
