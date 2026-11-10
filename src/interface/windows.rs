@@ -123,17 +123,17 @@ pub fn interfaces() -> Vec<Interface> {
             let p_aname = unsafe { (*cur).AdapterName.0 };
             let aname_len = unsafe { strlen(p_aname as *const c_char) };
             let aname_slice = unsafe { std::slice::from_raw_parts(p_aname, aname_len) };
-            let adapter_name = String::from_utf8(aname_slice.to_vec()).unwrap();
+            let adapter_name = String::from_utf8_lossy(aname_slice).into_owned();
             // Friendly Name
             let p_fname = unsafe { (*cur).FriendlyName.0 };
             let fname_len = unsafe { wcslen(p_fname as *const wchar_t) };
             let fname_slice = unsafe { std::slice::from_raw_parts(p_fname, fname_len) };
-            let friendly_name = String::from_utf16(fname_slice).unwrap();
+            let friendly_name = String::from_utf16_lossy(fname_slice);
             // Description
             let p_desc = unsafe { (*cur).Description.0 };
             let desc_len = unsafe { wcslen(p_desc as *const wchar_t) };
             let desc_slice = unsafe { std::slice::from_raw_parts(p_desc, desc_len) };
-            let description = String::from_utf16(desc_slice).unwrap();
+            let description = String::from_utf16_lossy(desc_slice);
             // MAC address
             let mac_addr_arr: [u8; 6] = unsafe { (*cur).PhysicalAddress }[..6]
                 .try_into()
