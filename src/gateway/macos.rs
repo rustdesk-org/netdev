@@ -308,7 +308,10 @@ fn list_routes() -> io::Result<Vec<Route>> {
 
         let msg_len = rt_hdr.rtm_msglen as usize;
         if msg_len < std::mem::size_of::<rt_msghdr>() || msg_len > buf.len() {
-            break;
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("invalid rtm_msglen: {}", msg_len),
+            ));
         }
         offset += msg_len;
 
@@ -420,7 +423,10 @@ fn get_arp_table() -> io::Result<HashMap<IpAddr, MacAddr>> {
 
         let msg_len = rt_hdr.rtm_msglen as usize;
         if msg_len < std::mem::size_of::<rt_msghdr>() || msg_len > buf.len() {
-            break;
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("invalid rtm_msglen: {}", msg_len),
+            ));
         }
         offset += msg_len;
 
