@@ -278,6 +278,7 @@ fn list_routes() -> io::Result<Vec<Route>> {
     {
         return Err(io::Error::last_os_error());
     }
+    msgs_buf.truncate(len as usize);
 
     let mut routes = vec![];
     let mut offset = 0;
@@ -397,6 +398,7 @@ fn get_arp_table() -> io::Result<HashMap<IpAddr, MacAddr>> {
     {
         return Err(io::Error::last_os_error());
     }
+    msgs_buf.truncate(len as usize);
     let mut offset = 0;
     loop {
         let buf = &mut msgs_buf[offset..];
