@@ -9,7 +9,6 @@ use std::ffi::{CStr, CString};
 use std::mem::{self, MaybeUninit};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::os::raw::c_char;
-use std::str::from_utf8_unchecked;
 
 #[cfg(any(target_os = "openbsd", target_os = "freebsd", target_os = "netbsd"))]
 pub fn interfaces() -> Vec<Interface> {
@@ -234,7 +233,7 @@ fn unix_interfaces_inner(
         let addr_ref: &libc::ifaddrs = unsafe { &*addr };
         let c_str = addr_ref.ifa_name as *const c_char;
         let bytes = unsafe { CStr::from_ptr(c_str).to_bytes() };
-        let name = unsafe { from_utf8_unchecked(bytes).to_owned() };
+        let name = String::from_utf8_lossy(bytes).into_owned();
         let (mac, ip) = sockaddr_to_network_addr(addr_ref.ifa_addr as *mut libc::sockaddr);
         let (_, netmask) = sockaddr_to_network_addr(addr_ref.ifa_netmask as *mut libc::sockaddr);
         let mut ini_ipv4: Vec<Ipv4Net> = vec![];
