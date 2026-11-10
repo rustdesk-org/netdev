@@ -63,7 +63,6 @@ pub fn interfaces() -> Vec<Interface> {
     let mut retries = 3;
     let mut ret_val;
     loop {
-        let old_size = dwsize as usize;
         ret_val = unsafe {
             GetAdaptersAddresses(
                 AF_UNSPEC.0 as u32,
@@ -76,7 +75,7 @@ pub fn interfaces() -> Vec<Interface> {
         if ret_val != ERROR_BUFFER_OVERFLOW.0 || retries <= 0 {
             break;
         }
-        unsafe { deallocate(mem as *mut u8, old_size as usize) };
+        unsafe { deallocate(mem as *mut u8, mem_size) };
         mem = unsafe { allocate(dwsize as usize) as *mut IP_ADAPTER_ADDRESSES_LH };
         mem_size = dwsize as usize;
         retries -= 1;
