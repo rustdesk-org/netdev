@@ -59,6 +59,7 @@ pub fn interfaces() -> Vec<Interface> {
     let mut interfaces: Vec<Interface> = vec![];
     let mut dwsize: u32 = 2000;
     let mut mem = unsafe { allocate(dwsize as usize) } as *mut IP_ADAPTER_ADDRESSES_LH;
+    let mut mem_size = dwsize as usize;
     let mut retries = 3;
     let mut ret_val;
     loop {
@@ -77,6 +78,7 @@ pub fn interfaces() -> Vec<Interface> {
         }
         unsafe { deallocate(mem as *mut u8, old_size as usize) };
         mem = unsafe { allocate(dwsize as usize) as *mut IP_ADAPTER_ADDRESSES_LH };
+        mem_size = dwsize as usize;
         retries -= 1;
     }
     if ret_val == NO_ERROR.0 {
@@ -223,7 +225,7 @@ pub fn interfaces() -> Vec<Interface> {
         }
     }
     unsafe {
-        deallocate(mem as *mut u8, dwsize as usize);
+        deallocate(mem as *mut u8, mem_size);
     }
     return interfaces;
 }
