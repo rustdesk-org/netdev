@@ -306,6 +306,9 @@ fn list_routes() -> io::Result<Vec<Route>> {
         }
 
         let msg_len = rt_hdr.rtm_msglen as usize;
+        if msg_len < std::mem::size_of::<rt_msghdr>() || msg_len > buf.len() {
+            break;
+        }
         offset += msg_len;
 
         if rt_hdr.rtm_flags as u32 & RTF_WASCLONED != 0 {
@@ -403,12 +406,20 @@ fn get_arp_table() -> io::Result<HashMap<IpAddr, MacAddr>> {
         }
 
         let rt_hdr = unsafe { std::mem::transmute::<_, &rt_msghdr>(buf.as_ptr()) };
-        assert_eq!(rt_hdr.rtm_version as u32, RTM_VERSION);
+        if rt_hdr.rtm_version as u32 != RTM_VERSION {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("unexpected RTM_VERSION: {}", rt_hdr.rtm_version),
+            ));
+        }
         if rt_hdr.rtm_errno != 0 {
             return Err(code_to_error(rt_hdr.rtm_errno));
         }
 
         let msg_len = rt_hdr.rtm_msglen as usize;
+        if msg_len < std::mem::size_of::<rt_msghdr>() || msg_len > buf.len() {
+            break;
+        }
         offset += msg_len;
 
         let rt_msg: &mut [u8] = &mut buf[std::mem::size_of::<rt_msghdr>()..msg_len];
