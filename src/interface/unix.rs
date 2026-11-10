@@ -171,9 +171,10 @@ fn sockaddr_to_network_addr(sa: *mut libc::sockaddr) -> (Option<MacAddr>, Option
         if sa.is_null() {
             (None, None)
         } else if (*sa).sa_family as libc::c_int == libc::AF_LINK {
-            let nlen: i8 = (*sa).sa_data[3];
-            let alen: i8 = (*sa).sa_data[4];
-            if alen > 0 && alen as u8 + nlen as u8 + 8 <= (*sa).sa_len {
+            let nlen = (*sa).sa_data[3] as u8 as usize;
+            let alen = (*sa).sa_data[4] as u8 as usize;
+            // Six bytes are read below; a shorter link address would index past `extended`.
+            if alen >= 6 && nlen + alen + 8 <= (*sa).sa_len as usize {
                 let ptr = (*sa).sa_data.as_mut_ptr();
                 let extended =
                     std::slice::from_raw_parts_mut(ptr, 6 + nlen as usize + alen as usize);
