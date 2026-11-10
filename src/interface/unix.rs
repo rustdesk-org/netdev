@@ -50,34 +50,10 @@ pub fn interfaces() -> Vec<Interface> {
 
     let type_map = macos::get_if_type_map();
     let mut interfaces: Vec<Interface> = unix_interfaces();
-    let local_ip: IpAddr = match super::get_local_ipaddr() {
-        Some(local_ip) => local_ip,
-        None => return interfaces,
-    };
+    // No gateway lookup here: the route and ARP dump parsers in gateway::macos read
+    // sockaddrs at fixed offsets, which can run past a message.
     for iface in &mut interfaces {
         iface.if_type = *type_map.get(&iface.name).unwrap_or(&InterfaceType::Unknown);
-        match local_ip {
-            IpAddr::V4(local_ipv4) => {
-                if iface.ipv4.iter().any(|x| x.addr == local_ipv4) {
-                    match gateway::macos::get_default_gateway(iface.name.clone()) {
-                        Ok(gateway) => {
-                            iface.gateway = Some(gateway);
-                        }
-                        Err(_) => {}
-                    }
-                }
-            }
-            IpAddr::V6(local_ipv6) => {
-                if iface.ipv6.iter().any(|x| x.addr == local_ipv6) {
-                    match gateway::macos::get_default_gateway(iface.name.clone()) {
-                        Ok(gateway) => {
-                            iface.gateway = Some(gateway);
-                        }
-                        Err(_) => {}
-                    }
-                }
-            }
-        }
     }
     interfaces
 }
