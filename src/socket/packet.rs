@@ -76,6 +76,9 @@ fn convert_ipv6_bytes(bytes: [u8; 16]) -> Ipv6Addr {
 }
 
 pub fn parse_frame(frame: &[u8]) -> Result<Gateway, ()> {
+    if frame.len() < Frame::EtherType.end_index() {
+        return Err(());
+    }
     let src_mac: [u8; 6] = frame[Frame::SrcMacAddr.start_index()..Frame::SrcMacAddr.end_index()]
         .try_into()
         .unwrap();
@@ -84,6 +87,9 @@ pub fn parse_frame(frame: &[u8]) -> Result<Gateway, ()> {
         .unwrap();
     match ether_type {
         ETHER_TYPE_IPV4 => {
+            if frame.len() < Frame::IcmpType.end_index() {
+                return Err(());
+            }
             let src_ip: [u8; 4] = frame
                 [Frame::SrcIpv4Addr.start_index()..Frame::SrcIpv4Addr.end_index()]
                 .try_into()
@@ -101,6 +107,9 @@ pub fn parse_frame(frame: &[u8]) -> Result<Gateway, ()> {
             }
         }
         ETHER_TYPE_IPV6 => {
+            if frame.len() < Frame::Icmpv6Type.end_index() {
+                return Err(());
+            }
             let src_ip: [u8; 16] = frame
                 [Frame::SrcIpv6Addr.start_index()..Frame::SrcIpv6Addr.end_index()]
                 .try_into()
