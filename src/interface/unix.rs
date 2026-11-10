@@ -233,7 +233,15 @@ fn unix_interfaces_inner(
         let addr_ref: &libc::ifaddrs = unsafe { &*addr };
         let c_str = addr_ref.ifa_name as *const c_char;
         let bytes = unsafe { CStr::from_ptr(c_str).to_bytes() };
-        let name = String::from_utf8_lossy(bytes).into_owned();
+        let name = match std::str::from_utf8(bytes) {
+            Ok(name) => name.to_owned(),
+            // The name identifies the interface below; a lossy copy could merge two
+            // interfaces and would not resolve in if_nametoindex().
+            Err(_) => {
+                addr = addr_ref.ifa_next;
+                continue;
+            }
+        };
         let (mac, ip) = sockaddr_to_network_addr(addr_ref.ifa_addr as *mut libc::sockaddr);
         let (_, netmask) = sockaddr_to_network_addr(addr_ref.ifa_netmask as *mut libc::sockaddr);
         let mut ini_ipv4: Vec<Ipv4Net> = vec![];
